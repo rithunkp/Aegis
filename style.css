@@ -9,6 +9,11 @@
     font-family: "Poppins", sans-serif;
 }
 
+html {
+    width: 100vw;
+    overflow-x: hidden;
+}
+
 :root {
     /* Dark Theme Colors */
     --bg-primary: #0f0f0f;
@@ -66,23 +71,28 @@
 
 
 body {
-    width: 100%;
-    height: 100vh;
+    width: 100vw;
+    min-height: 100vh;
     background: var(--bg-primary);
     color: var(--text-primary);
     font-weight: 400;
     line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .main {
     display: grid;
-    grid-template-columns: 30% 30% 40%;
-    gap: 24px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px;
     height: 100%;
-    padding: 24px;
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
+    padding: 16px;
+    width: 100vw;
+    max-width: 100vw;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 button {
@@ -193,6 +203,11 @@ button:active {
     border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+/* Style for income transactions */
+.trans-item.income h4 {
+    color: var(--accent-success) !important;
+}
+
 .total-card {
     padding: 20px;
     border-radius: 12px;
@@ -237,9 +252,10 @@ button:active {
     font-size: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     box-shadow: var(--shadow-lg);
     backdrop-filter: blur(10px);
+    overflow: hidden;
 }
 
 .add-type {
@@ -253,22 +269,60 @@ button:active {
 }
 
 .tag-input {
-    width: 100px;
+    width: 100%;
     display: none;
-    background-color: #fff;
-    border-radius: 50px;
-    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: 8px;
     align-items: center;
     overflow: hidden;
-    height: 25px;
+    height: 44px;
+    border: 1px solid var(--border-color);
+    margin-top: 8px;
+}
+
+.tag-input button {
+    background: var(--accent-primary);
+    color: white;
+    padding: 0 16px;
+    height: 100%;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-input button:hover {
+    background: var(--accent-secondary);
+}
+
+.tag-buttons {
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;
+}
+
+.add-tag-button {
+    background: var(--accent-primary);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
 }
 
 .tag-input input {
-    font-size: 0.8rem !important;
+    font-size: 0.9rem !important;
     height: 100%;
     outline: none;
     display: inline-block !important;
     width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    padding: 0 16px;
 }
 
 .selected-add-exp {
@@ -304,6 +358,7 @@ button:active {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    overflow: hidden;
 }
 
 .flex-col {
@@ -337,21 +392,34 @@ input[type="text"]:focus {
 
 .exp-for {
     display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.tags-conatiner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    width: 100%;
 }
 
 .exp-for label,
 .exp-for button {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
-    padding: 8px 16px;
+    padding: 8px 12px;
     border-radius: 20px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     cursor: pointer;
     color: var(--text-secondary);
     transition: all 0.2s ease;
+    white-space: nowrap;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .exp-for button {
@@ -367,6 +435,37 @@ input[type="text"]:focus {
     border-color: var(--border-light);
 }
 
+/* Tags Container */
+.tags-conatiner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+}
+
+.tags-conatiner label {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    text-align: center;
+    width: 100%;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+}
+
+.tags-conatiner label:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
 /* Custom Tag Container */
 .custom-tag-container {
     display: inline-flex;
@@ -378,7 +477,9 @@ input[type="text"]:focus {
     gap: 6px;
     transition: all 0.2s ease;
     white-space: nowrap;
-    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .custom-tag-container:hover {
@@ -397,8 +498,14 @@ input[type="text"]:focus {
     margin: 0 !important;
     cursor: pointer;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     transition: color 0.2s ease;
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: auto !important;
 }
 
 .custom-tag-container label:hover {
@@ -663,6 +770,248 @@ input[type="text"]:focus {
 
 /* edit money card ends here  */
 
+/* AI Settings Modal */
+.ai-settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.ai-settings-modal.show {
+    display: flex;
+}
+
+.ai-settings-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+}
+
+.ai-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+}
+
+.ai-settings-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.ai-settings-header button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ai-settings-header button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.ai-settings-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.settings-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.settings-note {
+    font-size: 0.85rem !important;
+    color: var(--text-muted) !important;
+    font-style: italic;
+}
+
+.api-key-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.api-key-section label {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.api-key-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.api-key-input-group input {
+    flex: 1;
+}
+
+.icon-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.get-api-key-link {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+}
+
+.get-api-key-link:hover {
+    color: var(--accent-secondary);
+    text-decoration: underline;
+}
+
+.ai-status {
+    padding: 12px 16px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    animation: pulse 2s infinite;
+}
+
+.status-dot.connected {
+    background: var(--accent-success);
+}
+
+.status-dot.error {
+    background: var(--accent-error);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.ai-settings-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ai-settings-actions button {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.save-btn {
+    background: var(--accent-success);
+    color: white;
+}
+
+.save-btn:hover {
+    background: #059669;
+}
+
+.test-btn {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.test-btn:hover {
+    background: var(--accent-secondary);
+}
+
+.clear-btn {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.clear-btn:hover {
+    background: var(--accent-error);
+    color: white;
+}
+
+.test-result {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.test-result.success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid var(--accent-success);
+    color: var(--accent-success);
+}
+
+.test-result.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--accent-error);
+    color: var(--accent-error);
+}
+
+.test-result p {
+    margin: 0;
+}
+
+/* edit money card ends here  */
+
 /* AI Insights Styles */
 .ai-insights-container {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
@@ -874,6 +1223,12 @@ input[type="text"]:focus {
 
 @media screen and (max-width:1030px) {
 
+    .main {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        padding: 16px;
+    }
+
     .display-cards h1 {
         font-size: 3rem;
     }
@@ -888,17 +1243,25 @@ input[type="text"]:focus {
 
 }
 
+@media screen and (min-width:1400px) {
+    .main {
+        gap: 24px;
+        padding: 24px;
+    }
+}
+
 @media screen and (max-width:850px) {
     body {
-        height: 100%;
+        min-height: 100vh;
+        height: auto;
     }
 
     .main {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto auto;
-        padding: 3%;
-        gap: 20px;
-        padding-top: 5%;
+        padding: 16px;
+        gap: 16px;
+        padding-top: 20px;
     }
 
     .left-container {

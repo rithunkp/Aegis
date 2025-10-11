@@ -1,5 +1,7 @@
 import localStorage from "./localStorage.js";
 import AIService from "./aiService.js";
+import HuggingFaceService from "./huggingfaceService.js";
+import GeminiService from "./geminiService.js";
 
 // ---------------------------all data here ------------------------
 
@@ -12,7 +14,9 @@ const colors = {
 };
 
 let totalExpData, totalBudgetLeftData;
-const aiService = new AIService();
+const aiService = new AIService(); // Fallback rule-based AI
+const huggingfaceService = new HuggingFaceService(); // Hugging Face AI (FREE!)
+const geminiService = new GeminiService(); // Google Gemini AI
 
 // ---------------------------------refrense of html element here---------------------------
 const ctx = document.getElementById("myChart");
@@ -50,16 +54,23 @@ const editCardInfo = document.querySelector(".edit-money-card .info");
 
 function totalCalculate() {
   const allTrans = localStorage.getAllTrans();
-  let total = 0;
+  let totalExpense = 0;
+  let totalIncome = 0;
+  
   for (let i = 0; i < allTrans.length; i++) {
-    total += allTrans[i].amount;
+    if (allTrans[i].type === 'income' || allTrans[i].tag === 'Income💰') {
+      totalIncome += allTrans[i].amount;
+    } else {
+      totalExpense += allTrans[i].amount;
+    }
   }
-  totalExpEle.textContent = `${total}`;
-  const leftBudget = Number(localStorage.getTotalBudget()) - total;
-  totalExpData = total;
-  totalBudgetLeftData = leftBudget;
-  budgetLeftEle.textContent = `${leftBudget}`;
-  totalBudgetEle.textContent = localStorage.getTotalBudget();
+  
+  totalExpEle.textContent = `${totalExpense}`;
+  totalBudgetEle.textContent = `${totalIncome}`;
+  const balance = totalIncome - totalExpense;
+  totalExpData = totalExpense;
+  totalBudgetLeftData = balance;
+  budgetLeftEle.textContent = `${balance}`;
   
   // Update AI insights whenever data changes
   updateAIInsights();
@@ -76,23 +87,34 @@ function hideInfo(ele) {
   ele.parentElement.style.display = "none";
 }
 
-function addBudgetInput() {
+function addIncomeInput() {
   if (transAmountEle.value == "") {
-    showInfo(addAmountCardInfo, "Please enter budget amount.");
+    showInfo(addAmountCardInfo, "Please enter income amount.");
   } else {
-    localStorage.setTotalBudget(Number(transAmountEle.value));
+    // Add income as a positive transaction with special "Income" tag
+    let incomeObj = {
+      id: Math.floor(Math.random() * 10000000),
+      amount: Number(transAmountEle.value),
+      tag: "Income💰",
+      time: new Date().toISOString(),
+      type: "income"
+    };
+    localStorage.saveTrans(incomeObj);
+    renderTransHistory(localStorage.getAllTrans());
+    addTranBtnEvent();
     totalCalculate();
     hideInfo(addAmountCardInfo);
+    transAmountEle.value = "";
   }
 }
 
-const showBudgetInput = () => {
+const showIncomeInput = () => {
   addExpBtnEle.classList.remove("selected-add-exp");
   addBudBtnEle.classList.add("selected-add-bud");
   expForSelectEle.style.display = "none";
-  transAmountEle.value = localStorage.getTotalBudget();
+  transAmountEle.value = "";
   addBtnEle.removeEventListener("click", addTransItem);
-  addBtnEle.addEventListener("click", addBudgetInput);
+  addBtnEle.addEventListener("click", addIncomeInput);
 };
 
 const showExpInput = () => {
@@ -105,9 +127,11 @@ const showExpInput = () => {
 };
 
 function createTranHTML(obj = {}) {
-  return `<div class="trans-item" id="${obj?.id}">
+  const isIncome = obj.type === 'income' || obj.tag === 'Income💰';
+  const sign = isIncome ? '+' : '-';
+  return `<div class="trans-item ${isIncome ? 'income' : ''}" id="${obj?.id}">
   <div>
-      <h4>-₹${obj?.amount}</h4>
+      <h4>${sign}₹${obj?.amount}</h4>
       <div class="tranTagContainer">
         <p>${obj?.tag}</p>
         <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
@@ -124,12 +148,12 @@ function createTranHTML(obj = {}) {
 // Initialize with basic expense categories (only if not already present)
 const existingTags = localStorage.getAllTags();
 if (existingTags.length === 0) {
-    localStorage.saveTag("Food🍽️");
-    localStorage.saveTag("Shopping🛍️");
-    localStorage.saveTag("Transport🚗");
-    localStorage.saveTag("Entertainment🎬");
-    localStorage.saveTag("Bills💡");
-    localStorage.saveTag("Healthcare🏥");
+    localStorage.saveTag("Food");
+    localStorage.saveTag("Shopping");
+    localStorage.saveTag("Transport");
+    localStorage.saveTag("Entertainment");
+    localStorage.saveTag("Bills");
+    localStorage.saveTag("Healthcare");
 } else {
     // Remove any "Manik" tags if they exist
     const manikTags = existingTags.filter(tag => tag.includes("Manik"));
@@ -428,7 +452,7 @@ closeEditCardBtn.addEventListener("click", () => {
   hideInfo(editCardInfo);
 });
 editTranBtn.addEventListener("click", editTran);
-addBudBtnEle.addEventListener("click", showBudgetInput);
+addBudBtnEle.addEventListener("click", showIncomeInput);
 addExpBtnEle.addEventListener("click", showExpInput);
 addBtnEle.addEventListener("click", addTransItem);
 clearBtnEle.addEventListener("click", clearInputForm);
@@ -443,13 +467,44 @@ addTranBtnEvent();
 showChart([totalExpData, totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0]);
 
 // AI Insights Functions
-function updateAIInsights() {
+async function updateAIInsights() {
   const allTrans = localStorage.getAllTrans();
-  const totalBudget = Number(localStorage.getTotalBudget());
+  const totalIncome = localStorage.getTotalIncome();
   
-  // Get AI analysis
-  const analysis = aiService.analyzeSpendingPatterns(allTrans);
-  const budgetPrediction = aiService.predictBudgetExceedance(allTrans, totalBudget);
+  // Filter only expenses (not income) for spending analysis
+  const expenses = allTrans.filter(trans => trans.type !== 'income');
+  
+  // Try AI services in order: Hugging Face (free) -> Gemini (free) -> Basic (fallback)
+  let analysis, budgetPrediction;
+  
+  // Try Hugging Face first (COMPLETELY FREE!)
+  if (huggingfaceService.isReady()) {
+    try {
+      console.log('Using Hugging Face AI (FREE)...');
+      analysis = await huggingfaceService.analyzeSpendingPatterns(expenses, totalIncome);
+      budgetPrediction = await huggingfaceService.predictBudgetExceedance(expenses, totalIncome);
+    } catch (error) {
+      console.error('Hugging Face failed, trying next option:', error);
+    }
+  }
+  
+  // Try Gemini if Hugging Face failed
+  if (!analysis && geminiService.isReady()) {
+    try {
+      console.log('Using Google Gemini AI...');
+      analysis = await geminiService.analyzeSpendingPatterns(expenses, totalIncome);
+      budgetPrediction = await geminiService.predictBudgetExceedance(expenses, totalIncome);
+    } catch (error) {
+      console.error('Gemini failed, using fallback:', error);
+    }
+  }
+  
+  // Fallback to rule-based AI
+  if (!analysis) {
+    console.log('Using basic rule-based AI...');
+    analysis = aiService.analyzeSpendingPatterns(expenses);
+    budgetPrediction = aiService.predictBudgetExceedance(expenses, totalIncome);
+  }
   
   // Update AI insights in the UI
   renderAIInsights(analysis, budgetPrediction);
@@ -465,8 +520,8 @@ function renderAIInsights(analysis, budgetPrediction) {
     aiContainer.className = 'ai-insights-container';
     aiContainer.innerHTML = `
       <div class="ai-header">
-        <h3> AI Insights</h3>
-        <button id="toggleAI" class="toggle-ai-btn">
+        <h3>🤖 AI Insights</h3>
+        <button id="toggleAI" class="toggle-ai-btn" title="Toggle Insights">
           <i class="fa-solid fa-chevron-down" id="toggleIcon"></i>
           <span class="fallback-icon">▼</span>
         </button>

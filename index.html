@@ -54,22 +54,20 @@
             <div class="display-cards">
 
                 <!-- money left card  -->
-                <div class="money-left-card">
+                    <div class="money-left-card">
                     <div class="card-text-container">
-                        <p>Buget Left</p>
+                        <p>Balance</p>
                         <h1>₹<span id="budgetLeft">0</span></h1>
                     </div>
                     <div class="chart-container">
                         <canvas id="myChart"></canvas>
                     </div>
                 </div>
-
-
                 <!-- total money cards  -->
                 <div class="budg-exp-container">
 
                     <div class="total-card total-budget">
-                        <p>Total Budget</p>
+                        <p>Total Income</p>
                         <div>
                             <h4>₹<span id="totalBudget">0</span></h4>
                         </div>
@@ -91,7 +89,7 @@
 
                 <div class="add-type">
                     <button class="add-exp-btn selected-add-exp">Add Expense</button>
-                    <button class="add-bud-btn">Change Budget</button>
+                    <button class="add-bud-btn">Add Income</button>
                 </div>
 
                 <div class="form-container">
@@ -116,13 +114,14 @@
                             <label for="healthcare">Healthcare🏥</label>
                         </div>
                         <div class="tag-input">
-                            <input type="text" name="" maxlength="20" id="tagInputField">
+                            <input type="text" name="" maxlength="20" id="tagInputField" placeholder="Enter new tag name">
                             <button id="confirmNewTag"><i class="fa-solid fa-check"></i></button>
                         </div>
-                        <button id="addTagBtn">
-                            Add tag <i class="fa-solid fa-plus"></i>
-                        </button>
-
+                        <div class="tag-buttons">
+                            <button id="addTagBtn" class="add-tag-button">
+                                Add new tag <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
 
                 </div>

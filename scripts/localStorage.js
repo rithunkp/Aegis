@@ -1,15 +1,24 @@
 export default class display {
     
-    static getTotalBudget (){
-        const totalBudget = localStorage.getItem("totalBudget") || "0";
-        return totalBudget;
+    static getTotalIncome() {
+        const allTrans = display.getAllTrans();
+        return allTrans
+            .filter(trans => trans.type === 'income')
+            .reduce((sum, trans) => sum + trans.amount, 0);
     }
 
-    static setTotalBudget (num){
-        localStorage.setItem("totalBudget", num);
+    static getTotalExpenses() {
+        const allTrans = display.getAllTrans();
+        return allTrans
+            .filter(trans => trans.type !== 'income')
+            .reduce((sum, trans) => sum + trans.amount, 0);
     }
 
-    static getAllTrans (){
+    static getBalance() {
+        return display.getTotalIncome() - display.getTotalExpenses();
+    }
+
+    static getAllTrans() {
         const data = localStorage.getItem("trans-data") || "[]";
         const transData = JSON.parse(data);
         return transData;
