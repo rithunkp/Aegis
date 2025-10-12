@@ -1,9 +1,7 @@
+// Aegis Expense Tracker v2.0
 import localStorage from "./localStorage.js";
 import AIService from "./aiService.js";
-import HuggingFaceService from "./huggingfaceService.js";
-import GeminiService from "./geminiService.js";
-
-// ---------------------------all data here ------------------------
+import GroqService from "./groqService.js";
 
 const colors = {
   red: "#F38181",
@@ -14,9 +12,8 @@ const colors = {
 };
 
 let totalExpData, totalBudgetLeftData;
-const aiService = new AIService(); // Fallback rule-based AI
-const huggingfaceService = new HuggingFaceService(); // Hugging Face AI (FREE!)
-const geminiService = new GeminiService(); // Google Gemini AI
+const aiService = new AIService(); // Basic fallback if Groq isn't available
+const groqService = new GroqService(); // Main AI service
 
 // ---------------------------------refrense of html element here---------------------------
 const ctx = document.getElementById("myChart");
@@ -72,8 +69,7 @@ function totalCalculate() {
   totalBudgetLeftData = balance;
   budgetLeftEle.textContent = `${balance}`;
   
-  // Update AI insights whenever data changes
-  updateAIInsights();
+  updateAIInsights(); // Refresh AI insights whenever data changes
 }
 
 totalCalculate();
@@ -91,7 +87,6 @@ function addIncomeInput() {
   if (transAmountEle.value == "") {
     showInfo(addAmountCardInfo, "Please enter income amount.");
   } else {
-    // Add income as a positive transaction with special "Income" tag
     let incomeObj = {
       id: Math.floor(Math.random() * 10000000),
       amount: Number(transAmountEle.value),
@@ -148,33 +143,31 @@ function createTranHTML(obj = {}) {
 // Initialize with basic expense categories (only if not already present)
 const existingTags = localStorage.getAllTags();
 if (existingTags.length === 0) {
-    localStorage.saveTag("Food");
-    localStorage.saveTag("Shopping");
-    localStorage.saveTag("Transport");
-    localStorage.saveTag("Entertainment");
-    localStorage.saveTag("Bills");
-    localStorage.saveTag("Healthcare");
+    localStorage.saveTag("Food🍽️");
+    localStorage.saveTag("Shopping🛍️");
+    localStorage.saveTag("Transport🚗");
+    localStorage.saveTag("Entertainment🎬");
+    localStorage.saveTag("Bills💡");
+    localStorage.saveTag("Healthcare🏥");
 } else {
-    // Remove any "Manik" tags if they exist
     const manikTags = existingTags.filter(tag => tag.includes("Manik"));
     manikTags.forEach(tag => localStorage.removeTag(tag));
 }
 
 function createTagHTML(str) {
-  // Check if it's a default tag (no remove button) or custom tag (with remove button)
   const defaultTags = ["Food🍽️", "Shopping🛍️", "Transport🚗", "Entertainment🎬", "Bills💡", "Healthcare🏥"];
   const isDefaultTag = defaultTags.includes(str);
   
   if (isDefaultTag) {
     return `
-    <input type="radio" id="${str}" name="expFor" value="${str}">
-    <label for="${str}">${str}</label>
+    <input type="radio" id="${str.replace(/[^\w]/g, '')}" name="expFor" value="${str}">
+    <label for="${str.replace(/[^\w]/g, '')}">${str}</label>
     `;
   } else {
     return `
     <div class="custom-tag-container">
-      <input type="radio" id="${str}" name="expFor" value="${str}">
-      <label for="${str}">${str}</label>
+      <input type="radio" id="${str.replace(/[^\w]/g, '')}" name="expFor" value="${str}">
+      <label for="${str.replace(/[^\w]/g, '')}">${str}</label>
       <button class="remove-tag-btn" data-tag="${str}" title="Remove tag">
         <i class="fa-solid fa-times"></i>
       </button>
@@ -471,51 +464,35 @@ async function updateAIInsights() {
   const allTrans = localStorage.getAllTrans();
   const totalIncome = localStorage.getTotalIncome();
   
-  // Filter only expenses (not income) for spending analysis
   const expenses = allTrans.filter(trans => trans.type !== 'income');
   
-  // Try AI services in order: Hugging Face (free) -> Gemini (free) -> Basic (fallback)
   let analysis, budgetPrediction;
   
-  // Try Hugging Face first (COMPLETELY FREE!)
-  if (huggingfaceService.isReady()) {
+  // Use Groq AI if available, otherwise fall back to basic AI
+  if (groqService.isReady()) {
     try {
-      console.log('Using Hugging Face AI (FREE)...');
-      analysis = await huggingfaceService.analyzeSpendingPatterns(expenses, totalIncome);
-      budgetPrediction = await huggingfaceService.predictBudgetExceedance(expenses, totalIncome);
+      console.log('🚀 Using Groq AI...');
+      analysis = await groqService.analyzeSpendingPatterns(expenses, totalIncome);
+      budgetPrediction = await groqService.predictBudgetExceedance(expenses, totalIncome);
     } catch (error) {
-      console.error('Hugging Face failed, trying next option:', error);
+      console.error('Groq failed, using basic AI:', error);
     }
   }
   
-  // Try Gemini if Hugging Face failed
-  if (!analysis && geminiService.isReady()) {
-    try {
-      console.log('Using Google Gemini AI...');
-      analysis = await geminiService.analyzeSpendingPatterns(expenses, totalIncome);
-      budgetPrediction = await geminiService.predictBudgetExceedance(expenses, totalIncome);
-    } catch (error) {
-      console.error('Gemini failed, using fallback:', error);
-    }
-  }
-  
-  // Fallback to rule-based AI
+  // Fall back to basic rule-based AI if Groq isn't available
   if (!analysis) {
-    console.log('Using basic rule-based AI...');
+    console.log('Using basic AI...');
     analysis = aiService.analyzeSpendingPatterns(expenses);
     budgetPrediction = aiService.predictBudgetExceedance(expenses, totalIncome);
   }
   
-  // Update AI insights in the UI
   renderAIInsights(analysis, budgetPrediction);
 }
 
 function renderAIInsights(analysis, budgetPrediction) {
-  // Create or update AI insights container
   let aiContainer = document.querySelector('.ai-insights-container');
   
   if (!aiContainer) {
-    // Create AI insights section
     aiContainer = document.createElement('div');
     aiContainer.className = 'ai-insights-container';
     aiContainer.innerHTML = `
@@ -542,11 +519,10 @@ function renderAIInsights(analysis, budgetPrediction) {
       </div>
     `;
     
-    // Insert as the first column in the grid layout
     const main = document.querySelector('.main');
     main.insertBefore(aiContainer, main.firstChild);
     
-    // Add toggle functionality
+    // Toggle AI insights panel
     document.getElementById('toggleAI').addEventListener('click', () => {
       const content = aiContainer.querySelector('.ai-content');
       const icon = document.getElementById('toggleIcon');
@@ -564,19 +540,16 @@ function renderAIInsights(analysis, budgetPrediction) {
     });
   }
   
-  // Update insights
   const insightsList = aiContainer.querySelector('.insights-list');
   insightsList.innerHTML = analysis.insights.map(insight => 
     `<div class="insight-item">• ${insight}</div>`
   ).join('');
   
-  // Update recommendations
   const recommendationsList = aiContainer.querySelector('.recommendations-list');
   recommendationsList.innerHTML = analysis.recommendations.map(rec => 
     `<div class="recommendation-item">💡 ${rec}</div>`
   ).join('');
   
-  // Update budget prediction
   const budgetPred = aiContainer.querySelector('.budget-prediction');
   if (budgetPrediction) {
     const statusClass = budgetPrediction.willExceed ? 'exceed-warning' : 'on-track';
@@ -593,3 +566,453 @@ function renderAIInsights(analysis, budgetPrediction) {
     budgetPred.innerHTML = '<div class="prediction-item">Add more expenses to get budget predictions</div>';
   }
 }
+
+// Enhanced AI features
+import GroqEnhancedFeatures from './groqEnhancedFeatures.js';
+import { configPromise } from './config.js';
+let enhancedFeatures = null;
+
+async function initEnhancedFeatures() {
+  try {
+    console.log('🔄 Starting AI initialization...');
+    await configPromise;
+    console.log('✅ Config promise resolved');
+    
+    // Check if Groq is ready (it will update config internally)
+    const ready = groqService.isReady();
+    console.log('🔍 Groq ready check:', ready);
+    console.log('🔑 API Key exists:', !!groqService.apiKey);
+    console.log('⚙️ Enabled:', groqService.enabled);
+    
+    if (ready && !enhancedFeatures) {
+      enhancedFeatures = new GroqEnhancedFeatures(groqService);
+      console.log('🚀 Enhanced features ready');
+      console.log('✅ Groq API: Connected');
+      return true;
+    } else {
+      console.warn('⚠️ Groq not ready. API Key:', groqService.apiKey?.substring(0, 10) + '...');
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Init error:', error);
+    return false;
+  }
+}
+
+// Initialize on load with retry
+let initAttempts = 0;
+async function tryInit() {
+  console.log(`🔄 Init attempt ${initAttempts + 1}`);
+  const success = await initEnhancedFeatures();
+  if (!success && initAttempts < 3) {
+    initAttempts++;
+    setTimeout(tryInit, 1000);
+  } else if (success) {
+    console.log('✅ AI initialization complete!');
+  } else {
+    console.error('❌ AI initialization failed after 3 attempts');
+  }
+}
+
+setTimeout(tryInit, 500);
+
+// Natural Language Expense Entry
+const nlInput = document.getElementById('nlExpenseInput');
+const nlParseBtn = document.getElementById('nlParseBtn');
+const nlStatus = document.getElementById('nlStatus');
+
+nlParseBtn?.addEventListener('click', async () => {
+  const text = nlInput.value.trim();
+  if (!text) {
+    nlStatus.textContent = '⚠️ Enter something first';
+    nlStatus.style.color = '#f59e0b';
+    return;
+  }
+
+  if (!enhancedFeatures) {
+    nlStatus.textContent = '⏳ Initializing AI...';
+    nlStatus.style.color = '#f59e0b';
+    const ready = await initEnhancedFeatures();
+    if (!ready) {
+      nlStatus.textContent = '❌ AI not available. Check console.';
+      nlStatus.style.color = '#dc2626';
+      return;
+    }
+  }
+
+  nlStatus.textContent = '✨ Parsing...';
+  nlStatus.style.color = '#7c3aed';
+  nlParseBtn.disabled = true;
+
+  try {
+    const parsed = await enhancedFeatures.parseNaturalLanguageExpense(text);
+    
+    if (parsed && parsed.amount) {
+      transAmountEle.value = parsed.amount;
+      
+      if (parsed.category) {
+        const categoryMap = {
+          'food': 'Food',
+          'shopping': 'Shopping',
+          'transport': 'Transport',
+          'entertainment': 'Entertainment',
+          'bills': 'Bills',
+          'healthcare': 'Healthcare'
+        };
+        
+        const categoryKey = parsed.category.toLowerCase().replace(/[^a-z]/g, '');
+        const radioId = categoryMap[categoryKey];
+        if (radioId) {
+          document.getElementById(radioId)?.click();
+        }
+      }
+      
+      nlStatus.textContent = `✅ Got it: ₹${parsed.amount} - ${parsed.category || 'No category'} ${parsed.description ? `- "${parsed.description}"` : ''}`;
+      nlStatus.style.color = '#059669';
+      nlInput.value = '';
+    } else {
+      nlStatus.textContent = '❌ Try: "50 on coffee"';
+      nlStatus.style.color = '#dc2626';
+    }
+  } catch (error) {
+    nlStatus.textContent = '❌ Error: ' + error.message;
+    nlStatus.style.color = '#dc2626';
+    console.error('Parse error:', error);
+  } finally {
+    nlParseBtn.disabled = false;
+  }
+});
+
+nlInput?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') nlParseBtn.click();
+});
+
+// Anomaly Detection
+async function checkAnomalies() {
+  if (!enhancedFeatures) return;
+  
+  const transactions = localStorage.getAllTrans();
+  if (transactions.length < 5) return;
+  
+  try {
+    const anomalies = await enhancedFeatures.detectAnomalies(transactions);
+    
+    if (anomalies && anomalies.length > 0) {
+      const alertBox = document.getElementById('anomalyAlerts');
+      const anomalyList = document.getElementById('anomalyList');
+      
+      anomalyList.innerHTML = anomalies.map(a => 
+        `<div style="margin: 5px 0;">• ${a.description} - ₹${a.amount} (${a.reason})</div>`
+      ).join('');
+      
+      alertBox.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Anomaly check failed:', error);
+  }
+}
+
+const originalAddTrans = addBtnEle.onclick;
+addBtnEle.onclick = function() {
+  if (originalAddTrans) originalAddTrans.call(this);
+  setTimeout(checkAnomalies, 1000);
+};
+
+document.getElementById('dismissAnomalies')?.addEventListener('click', () => {
+  document.getElementById('anomalyAlerts').style.display = 'none';
+});
+
+// Budget Plan Generator
+document.getElementById('generateBudgetBtn')?.addEventListener('click', async () => {
+  if (!enhancedFeatures) {
+    const ready = await initEnhancedFeatures();
+    if (!ready) {
+      alert('❌ AI not available. Check browser console.');
+      return;
+    }
+  }
+
+  const btn = document.getElementById('generateBudgetBtn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+  btn.disabled = true;
+
+  try {
+    const expenses = localStorage.getAllTrans().filter(t => t.type !== 'income' && t.tag !== 'Income💰');
+    const income = localStorage.getTotalIncome();
+    
+    const plan = await enhancedFeatures.generateBudgetPlan(expenses, income);
+    
+    const modal = document.getElementById('budgetPlanModal');
+    const content = document.getElementById('budgetPlanContent');
+    
+    if (!plan) {
+      content.innerHTML = '<p style="color: #ef4444;">❌ Failed to generate budget plan. Try again.</p>';
+      modal.style.display = 'block';
+      return;
+    }
+    
+    // Format budget plan nicely
+    let budgetHTML = `
+      <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+        <h3 style="margin: 0 0 10px 0; color: #1f2937;">📊 Your Budget Plan</h3>
+        <p style="margin: 0; color: #6b7280; font-size: 14px;">Based on ₹${income} income and your spending habits</p>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <h4 style="color: #1f2937; margin-bottom: 10px;">💰 Recommended Budget</h4>
+    `;
+    
+    if (plan.recommended) {
+      for (const [category, amount] of Object.entries(plan.recommended)) {
+        budgetHTML += `
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+            <span style="color: #374151;">${category}</span>
+            <span style="color: #059669; font-weight: 600;">₹${amount}</span>
+          </div>
+        `;
+      }
+    }
+    
+    budgetHTML += `</div>`;
+    
+    if (plan.changes && plan.changes.length > 0) {
+      budgetHTML += `
+        <div style="margin-top: 20px;">
+          <h4 style="color: #1f2937; margin-bottom: 10px;">💡 Suggested Changes</h4>
+          <ul style="margin: 0; padding-left: 20px; color: #4b5563;">
+            ${plan.changes.map(change => `<li style="margin-bottom: 8px;">${change}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+    
+    if (plan.totalBudget) {
+      budgetHTML += `
+        <div style="background: #dbeafe; padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center;">
+          <strong style="color: #1e40af;">Total Budget: ₹${plan.totalBudget}</strong>
+        </div>
+      `;
+    }
+    
+    content.innerHTML = budgetHTML;
+    modal.style.display = 'block';
+  } catch (error) {
+    alert('Error: ' + error.message);
+    console.error(error);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+});
+
+// Financial Goals
+// Financial Goals with wishlist
+function showGoalsModal() {
+  document.getElementById('goalsModal').style.display = 'block';
+}
+
+document.getElementById('showGoalsBtn')?.addEventListener('click', showGoalsModal);
+
+document.getElementById('setGoalsBtn')?.addEventListener('click', async () => {
+  if (!enhancedFeatures) {
+    const ready = await initEnhancedFeatures();
+    if (!ready) {
+      alert('❌ AI not available. Check browser console.');
+      return;
+    }
+  }
+
+  const btn = document.getElementById('setGoalsBtn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+  btn.disabled = true;
+
+  try {
+    const expenses = localStorage.getAllTrans().filter(t => t.type !== 'income' && t.tag !== 'Income💰');
+    const income = localStorage.getTotalIncome();
+    const wishlistRaw = document.getElementById('wishlistInput').value;
+    const wishlist = wishlistRaw.split(',').map(item => item.trim()).filter(Boolean);
+
+    const goals = await enhancedFeatures.suggestFinancialGoals(expenses, income, 0, wishlist);
+
+    const modal = document.getElementById('goalsModal');
+    const content = document.getElementById('goalsContent');
+
+    if (!goals) {
+      content.innerHTML = '<p style="color: #ef4444;">❌ Failed to generate goals. Try again.</p>';
+      modal.style.display = 'block';
+      return;
+    }
+
+    // Format goals nicely
+    let goalsHTML = `
+      <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+        <h3 style="margin: 0 0 10px 0; color: #1f2937;">🎯 Your Financial Goals</h3>
+        <p style="margin: 0; color: #6b7280; font-size: 14px;">Based on your wishlist and spending</p>
+      </div>
+    `;
+
+    if (goals.shortTerm && goals.shortTerm.length > 0) {
+      goalsHTML += `
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #059669; margin-bottom: 10px;">🚀 Short-Term (3-6 months)</h4>
+          <ul style="margin: 0; padding-left: 20px; color: #374151;">
+            ${goals.shortTerm.map(goal => `<li style="margin-bottom: 8px;">${goal}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    if (goals.mediumTerm && goals.mediumTerm.length > 0) {
+      goalsHTML += `
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #2563eb; margin-bottom: 10px;">📅 Medium-Term (6-12 months)</h4>
+          <ul style="margin: 0; padding-left: 20px; color: #374151;">
+            ${goals.mediumTerm.map(goal => `<li style="margin-bottom: 8px;">${goal}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    if (goals.longTerm && goals.longTerm.length > 0) {
+      goalsHTML += `
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #7c3aed; margin-bottom: 10px;">🎯 Long-Term (1+ years)</h4>
+          <ul style="margin: 0; padding-left: 20px; color: #374151;">
+            ${goals.longTerm.map(goal => `<li style="margin-bottom: 8px;">${goal}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    content.innerHTML = goalsHTML;
+    modal.style.display = 'block';
+  } catch (error) {
+    alert('Error: ' + error.message);
+    console.error(error);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+});
+
+// Monthly Report
+document.getElementById('generateReportBtn')?.addEventListener('click', async () => {
+  if (!enhancedFeatures) {
+    const ready = await initEnhancedFeatures();
+    if (!ready) {
+      alert('❌ AI not available. Check browser console.');
+      return;
+    }
+  }
+
+  const btn = document.getElementById('generateReportBtn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+  btn.disabled = true;
+
+  try {
+    const transactions = localStorage.getAllTrans();
+    const income = localStorage.getTotalIncome();
+    
+    const report = await enhancedFeatures.generateMonthlyReport(transactions, income, 'October 2025');
+    
+    const modal = document.getElementById('reportModal');
+    const content = document.getElementById('reportContent');
+    
+    if (!report) {
+      content.innerHTML = '<p style="color: #ef4444;">❌ Failed to generate report. Try again.</p>';
+      modal.style.display = 'block';
+      return;
+    }
+    
+    // Format report nicely
+    let reportHTML = `
+      <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin: 0 0 10px 0; color: #1f2937;">📈 October 2025 Report</h3>
+        <p style="margin: 0; color: #6b7280; font-size: 14px;">Your financial health analysis</p>
+      </div>
+    `;
+    
+    // Health Score
+    if (report.healthScore !== undefined) {
+      const scoreColor = report.healthScore >= 70 ? '#059669' : report.healthScore >= 40 ? '#f59e0b' : '#ef4444';
+      reportHTML += `
+        <div style="text-align: center; margin-bottom: 25px;">
+          <div style="display: inline-block; background: ${scoreColor}; color: white; padding: 20px 40px; border-radius: 12px;">
+            <div style="font-size: 48px; font-weight: bold; margin-bottom: 5px;">${report.healthScore}</div>
+            <div style="font-size: 14px; opacity: 0.9;">Financial Health Score</div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Achievements
+    if (report.achievements && report.achievements.length > 0) {
+      reportHTML += `
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #059669; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-trophy"></i> Key Achievements
+          </h4>
+          <ul style="margin: 0; padding-left: 20px; color: #374151;">
+            ${report.achievements.map(item => `<li style="margin-bottom: 8px;">${item}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+    
+    // Improvements
+    if (report.improvements && report.improvements.length > 0) {
+      reportHTML += `
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #f59e0b; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-chart-line"></i> Areas for Improvement
+          </h4>
+          <ul style="margin: 0; padding-left: 20px; color: #374151;">
+            ${report.improvements.map(item => `<li style="margin-bottom: 8px;">${item}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+    
+    // Recommendations
+    if (report.recommendations && report.recommendations.length > 0) {
+      reportHTML += `
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #2563eb; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-lightbulb"></i> Next Month Recommendations
+          </h4>
+          <ul style="margin: 0; padding-left: 20px; color: #374151;">
+            ${report.recommendations.map(item => `<li style="margin-bottom: 8px;">${item}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+    
+    content.innerHTML = reportHTML;
+    modal.style.display = 'block';
+  } catch (error) {
+    alert('Error: ' + error.message);
+    console.error(error);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+});
+
+// Modal close handlers
+document.querySelectorAll('.close-modal').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const modalId = e.target.closest('button').dataset.modal;
+    document.getElementById(modalId).style.display = 'none';
+  });
+});
+
+document.querySelectorAll('.ai-modal').forEach(modal => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+});
+
+console.log('✅ All features loaded');

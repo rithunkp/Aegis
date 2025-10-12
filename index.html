@@ -92,6 +92,23 @@
                     <button class="add-bud-btn">Add Income</button>
                 </div>
 
+                <!-- Natural Language Input (Feature 5) -->
+                <div class="nl-input-container" style="padding: 15px; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color: #7c3aed;"></i>
+                        <label style="font-weight: 600; color: #374151;">Quick Entry</label>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="nlExpenseInput" 
+                               placeholder='Try: "50 on coffee" or "Spent 500 rupees on lunch"'
+                               style="flex: 1; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <button id="nlParseBtn" style="padding: 10px 20px; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                            <i class="fa-solid fa-sparkles"></i> Parse
+                        </button>
+                    </div>
+                    <div id="nlStatus" style="margin-top: 8px; font-size: 12px; color: #6b7280;"></div>
+                </div>
+
                 <div class="form-container">
                     <div class="flex-col add-amount">
                         <label for="addAmount">Amount</label>
@@ -100,18 +117,7 @@
 
                     <div class="exp-for">
                         <div class="tags-conatiner">
-                            <input type="radio" id="food" name="expFor" value="Food🍽️">
-                            <label for="food">Food🍽️</label>
-                            <input type="radio" id="shopping" name="expFor" value="Shopping🛍️">
-                            <label for="shopping">Shopping🛍️</label>
-                            <input type="radio" id="transport" name="expFor" value="Transport🚗">
-                            <label for="transport">Transport🚗</label>
-                            <input type="radio" id="entertainment" name="expFor" value="Entertainment🎬">
-                            <label for="entertainment">Entertainment🎬</label>
-                            <input type="radio" id="bills" name="expFor" value="Bills💡">
-                            <label for="bills">Bills💡</label>
-                            <input type="radio" id="healthcare" name="expFor" value="Healthcare🏥">
-                            <label for="healthcare">Healthcare🏥</label>
+                            <!-- Tags are dynamically rendered here by JavaScript -->
                         </div>
                         <div class="tag-input">
                             <input type="text" name="" maxlength="20" id="tagInputField" placeholder="Enter new tag name">
@@ -153,6 +159,33 @@
                 </select>
             </div>
 
+            <!-- Anomaly Alerts (Feature 8) -->
+            <div id="anomalyAlerts" class="anomaly-alerts" style="display: none; margin-bottom: 15px; padding: 12px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i>
+                        <strong style="color: #92400e;">Unusual Activity Detected</strong>
+                    </div>
+                    <button id="dismissAnomalies" style="background: none; border: none; cursor: pointer; color: #92400e; font-size: 18px;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div id="anomalyList" style="font-size: 13px; color: #78350f;"></div>
+            </div>
+
+            <!-- Budget Plan & Goals Section (Features 7 & 9) -->
+            <div class="ai-tools-container" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <button id="generateBudgetBtn" class="ai-tool-btn" style="flex: 1; min-width: 140px; padding: 10px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">
+                    <i class="fa-solid fa-chart-pie"></i> Budget Plan
+                </button>
+                <button id="showGoalsBtn" class="ai-tool-btn" style="flex: 1; min-width: 140px; padding: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">
+                    <i class="fa-solid fa-bullseye"></i> Financial Goals
+                </button>
+                <button id="generateReportBtn" class="ai-tool-btn" style="flex: 1; min-width: 140px; padding: 10px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">
+                    <i class="fa-solid fa-file-lines"></i> Monthly Report
+                </button>
+            </div>
+
             <div class="money-history-container">
 
                 <!-- <div class="trans-item" id="${obj?.id}">
@@ -171,6 +204,62 @@
   </div> -->
 
             </div>
+        </div>
+    </div>
+
+    <!-- AI Feature Modals -->
+    
+    <!-- Budget Plan Modal (Feature 9) -->
+    <div id="budgetPlanModal" class="ai-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; overflow-y: auto;">
+        <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-chart-pie" style="color: #3b82f6;"></i>
+                    AI Budget Plan
+                </h2>
+                <button class="close-modal" data-modal="budgetPlanModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="budgetPlanContent" style="line-height: 1.8; color: #374151;"></div>
+        </div>
+    </div>
+
+    <!-- Financial Goals Modal (Feature 7) -->
+    <div id="goalsModal" class="ai-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; overflow-y: auto;">
+        <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-bullseye" style="color: #10b981;"></i>
+                    Financial Goals
+                </h2>
+                <button class="close-modal" data-modal="goalsModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <!-- Wishlist input -->
+            <div style="margin-bottom: 18px;">
+                <label for="wishlistInput" style="font-weight: 500; color: #374151;">Wishlist items (comma separated):</label>
+                <input id="wishlistInput" type="text" placeholder="e.g. iPhone, vacation, laptop" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb; margin-top: 6px;">
+                <button id="setGoalsBtn" style="margin-top: 10px; background: #10b981; color: white; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-weight: 500;">Set Goals</button>
+            </div>
+            <div id="goalsContent" style="line-height: 1.8; color: #374151;"></div>
+        </div>
+    </div>
+
+    <!-- Monthly Report Modal (Feature 10) -->
+    <div id="reportModal" class="ai-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; overflow-y: auto;">
+        <div style="max-width: 700px; margin: 40px auto; background: white; border-radius: 16px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-file-lines" style="color: #8b5cf6;"></i>
+                    Monthly Financial Report
+                </h2>
+                <button class="close-modal" data-modal="reportModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="reportContent" style="line-height: 1.8; color: #374151;"></div>
         </div>
     </div>
 

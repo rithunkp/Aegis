@@ -85,7 +85,7 @@ body {
 
 .main {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 2fr;
     gap: 16px;
     height: 100%;
     padding: 16px;
