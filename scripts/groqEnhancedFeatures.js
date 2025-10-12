@@ -39,31 +39,60 @@ If unclear, return null for amount.`;
 
         const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
         const avgMonthlyExpense = totalExpenses;
+        const monthlySavings = income - avgMonthlyExpense;
 
         // Accept wishlist as 4th argument
         let wishlist = arguments[3] || [];
 
         try {
-            const prompt = `As a financial advisor, suggest realistic financial goals:
+            const prompt = `You are a financial calculator. Create precise savings goals.
 
 Income: ₹${income}
 Monthly Expenses: ₹${avgMonthlyExpense}
-Current Savings: ₹${currentSavings}
-Surplus: ₹${income - avgMonthlyExpense}
+Monthly Savings: ₹${monthlySavings}
 
-Wishlist items: ${wishlist.length > 0 ? wishlist.join(', ') : 'None'}
+Wishlist: ${wishlist.length > 0 ? wishlist.join(', ') : 'None'}
 
-Suggest 3-5 achievable financial goals with specific amounts and timeframes. If wishlist items are present, prioritize setting goals for those items (with amount and timeline).
+STEP-BY-STEP CALCULATION:
+1. Research actual Indian market price for each item
+2. Calculate: Months = Price ÷ ${monthlySavings}
+3. Round UP to nearest month
+4. Categorize:
+   - shortTerm: 1-6 months
+   - mediumTerm: 7-18 months
+   - longTerm: 19+ months
 
-Return ONLY this JSON:
+EXAMPLES WITH MATH:
+- Subnautica game (₹640):
+  640 ÷ ${monthlySavings} = ${(640 / monthlySavings).toFixed(2)} months
+  Category: ${640 / monthlySavings <= 6 ? 'shortTerm' : 'mediumTerm'}
+  Format: "Subnautica - ₹640 (${Math.ceil(640 / monthlySavings)} month${Math.ceil(640 / monthlySavings) > 1 ? 's' : ''})"
+
+- iPhone 15 (₹79,900):
+  79900 ÷ ${monthlySavings} = ${(79900 / monthlySavings).toFixed(2)} months
+  Category: ${79900 / monthlySavings <= 6 ? 'shortTerm' : 79900 / monthlySavings <= 18 ? 'mediumTerm' : 'longTerm'}
+  Format: "iPhone 15 - ₹79,900 (${Math.ceil(79900 / monthlySavings)} months)"
+
+RULES:
+- Use ONLY current Indian market prices (2025)
+- DO NOT make up prices
+- SHOW YOUR MATH: "Item - ₹[price] ([calculated months] month/months)"
+- If price > monthly savings, it takes multiple months
+- If price < monthly savings, it takes 1 month minimum
+
+Return JSON (calculate months correctly!):
 {
-  "shortTerm": ["goal 1 with amount and timeline", "goal 2"],
-  "mediumTerm": ["goal 1", "goal 2"],
-  "longTerm": ["goal 1"]
+  "shortTerm": [],
+  "mediumTerm": [],
+  "longTerm": []
 }`;
 
             const response = await this.groq.callGroq(prompt);
             const parsed = JSON.parse(response.match(/\{[\s\S]*\}/)[0]);
+            
+            // Validate the response
+            console.log('🎯 AI Goals Response:', parsed);
+            
             return parsed;
         } catch (e) {
             console.error('Goal error:', e);

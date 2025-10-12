@@ -856,7 +856,7 @@ document.getElementById('setGoalsBtn')?.addEventListener('click', async () => {
     if (goals.shortTerm && goals.shortTerm.length > 0) {
       goalsHTML += `
         <div style="margin-bottom: 20px;">
-          <h4 style="color: #059669; margin-bottom: 10px;">🚀 Short-Term (3-6 months)</h4>
+          <h4 style="color: #059669; margin-bottom: 10px;">🚀 Short-Term (1-6 months)</h4>
           <ul style="margin: 0; padding-left: 20px; color: #374151;">
             ${goals.shortTerm.map(goal => `<li style="margin-bottom: 8px;">${goal}</li>`).join('')}
           </ul>
@@ -867,7 +867,7 @@ document.getElementById('setGoalsBtn')?.addEventListener('click', async () => {
     if (goals.mediumTerm && goals.mediumTerm.length > 0) {
       goalsHTML += `
         <div style="margin-bottom: 20px;">
-          <h4 style="color: #2563eb; margin-bottom: 10px;">📅 Medium-Term (6-12 months)</h4>
+          <h4 style="color: #2563eb; margin-bottom: 10px;">📅 Medium-Term (7-18 months)</h4>
           <ul style="margin: 0; padding-left: 20px; color: #374151;">
             ${goals.mediumTerm.map(goal => `<li style="margin-bottom: 8px;">${goal}</li>`).join('')}
           </ul>
@@ -878,7 +878,7 @@ document.getElementById('setGoalsBtn')?.addEventListener('click', async () => {
     if (goals.longTerm && goals.longTerm.length > 0) {
       goalsHTML += `
         <div style="margin-bottom: 20px;">
-          <h4 style="color: #7c3aed; margin-bottom: 10px;">🎯 Long-Term (1+ years)</h4>
+          <h4 style="color: #7c3aed; margin-bottom: 10px;">🎯 Long-Term (19+ months)</h4>
           <ul style="margin: 0; padding-left: 20px; color: #374151;">
             ${goals.longTerm.map(goal => `<li style="margin-bottom: 8px;">${goal}</li>`).join('')}
           </ul>
