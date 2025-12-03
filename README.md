@@ -194,113 +194,6 @@ Aegis/
     └── groqEnhancedFeatures.js  # AI feature implementations
 ```
 
-## 🎨 Features in Detail
-
-### Transaction Categories
-Each category comes with emoji icons:
-- 🍽️ **Food** - Dining, groceries, food delivery
-- 🛍️ **Shopping** - Retail purchases, online shopping
-- 🚗 **Transport** - Fuel, public transport, ride-sharing
-- 🎬 **Entertainment** - Movies, games, subscriptions
-- 💡 **Bills** - Utilities, rent, subscriptions
-- 🏥 **Healthcare** - Medical expenses, insurance
-
-### Data Persistence
-All your data is stored locally:
-- Transactions (income & expenses)
-- Custom tags
-- Financial goals
-- Wishlist items
-- No server uploads - complete privacy
-
-### Responsive Design
-- Desktop-optimized layout
-- Mobile-friendly interface
-- Smooth animations and transitions
-- Modern gradient designs
-
-## 🔒 Security & Privacy
-
-- **Local Storage**: All financial data stays on your device
-- **No Backend**: No data sent to external servers (except AI API calls)
-- **API Key**: Stored in `.env` file (never commit to Git)
-- **Secure**: Add `.env` to `.gitignore` to protect credentials
-
-## 🐛 Troubleshooting
-
-### AI Features Not Working
-1. Check `.env` file exists with valid `GROQ_API_KEY`
-2. Verify internet connection
-3. Open browser console (F12) to check for errors
-4. Ensure Groq API key is active at [console.groq.com](https://console.groq.com)
-
-### Server Not Starting
-```bash
-# Kill existing processes
-pkill -f "python3 -m http.server"
-
-# Restart server
-cd Aegis
-python3 -m http.server 8000
-```
-
-### Data Not Persisting
-- Check browser localStorage is enabled
-- Try clearing cache and reloading (Ctrl+Shift+R)
-- Ensure you're accessing via `localhost:8000`, not `file://`
-
-### Calculation Errors
-- Hard refresh browser (Ctrl+Shift+R)
-- Check browser console for validation logs
-- Verify monthly savings > 0 (income > expenses)
-
-## 🔄 Development
-
-### Running in Development Mode
-```bash
-# Terminal 1 - Run server
-python3 -m http.server 8000
-
-# Access at http://localhost:8000
-```
-
-### Modifying AI Prompts
-Edit `/scripts/groqEnhancedFeatures.js` to customize:
-- Natural language parsing logic
-- Financial goal calculation method
-- Budget recommendation strategy
-- Anomaly detection sensitivity
-
-### Debugging
-```javascript
-// Enable detailed logging in browser console
-console.log('🎯 AI Goals Response:', parsed);
-```
-
-## 📊 API Usage
-
-### Groq API
-- **Endpoint**: `https://api.groq.com/openai/v1/chat/completions`
-- **Model**: `llama-3.3-70b-versatile`
-- **Rate Limits**: Check Groq documentation
-- **Pricing**: Free tier available
-
-Example API call:
-```javascript
-const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7
-    })
-});
-```
-
 ## 🤝 Contributing
 
 Contributions are welcome! Here's how:
@@ -317,17 +210,6 @@ Contributions are welcome! Here's how:
 - Test all AI features before submitting
 - Update README if adding new features
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Groq** - For providing fast AI inference
-- **Chart.js** - For beautiful data visualization
-- **Font Awesome** - For comprehensive icon library
-- **Community** - For feedback and contributions
-
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/rithunkp/Aegis/issues)
@@ -341,13 +223,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] Recurring transactions
 - [ ] Bill reminders
 - [ ] Investment tracking
-- [ ] Dark mode
 - [ ] PWA support for offline access
 - [ ] Backend integration (optional)
 - [ ] Cloud sync (optional)
 
 ---
 
-**Made with ❤️ by [Rithun KP](https://github.com/rithunkp)**
-
-⭐ Star this repo if you find it useful!
+**Made by [Rithun KP](https://github.com/rithunkp)**
